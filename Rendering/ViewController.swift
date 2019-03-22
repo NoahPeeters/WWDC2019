@@ -58,13 +58,10 @@ func - (lhs: ComplexNumber, rhs: ComplexNumber) -> ComplexNumber {
 }
 
 class ViewController: UIViewController {
-
     let imageView = UIImageView()
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        calculationQueue.maxConcurrentOperationCount = 8
 
         view.addSubview(imageView)
         imageView.translatesAutoresizingMaskIntoConstraints = false
@@ -86,12 +83,10 @@ class ViewController: UIViewController {
         render()
     }
 
-    private let rgbColorSpace = CGColorSpaceCreateDeviceRGB()
-    private let bitmapInfo: CGBitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedFirst.rawValue)
-    private var scaleFactor: Double = 200
+    private var scaleFactor: CGFloat = 200
     private var fastMode = false
-    private var centerX: Double = 0
-    private var centerY: Double = 0
+    private var centerX: CGFloat = 0
+    private var centerY: CGFloat = 0
 
     func shouldRenderFast(recognizer: UIGestureRecognizer) -> Bool {
         return [UISwipeGestureRecognizer.State.began, .changed, .possible].contains(recognizer.state)
@@ -99,13 +94,13 @@ class ViewController: UIViewController {
 
     @objc func pinchGestureRecognizerChanged(recognizer: UIPinchGestureRecognizer) {
         let oldScaleFactor = scaleFactor
-        scaleFactor *= Double(recognizer.scale)
+        scaleFactor *= recognizer.scale
 
         let center = recognizer.location(in: view)
 
-        let xDistance = Double(center.x - view.bounds.midX)
+        let xDistance = center.x - view.bounds.midX
         centerX -= xDistance / scaleFactor - xDistance / oldScaleFactor
-        let yDistance = Double(center.y - view.bounds.midY)
+        let yDistance = center.y - view.bounds.midY
         centerY -= yDistance / scaleFactor - yDistance / oldScaleFactor
         recognizer.scale = 1
 
@@ -116,64 +111,40 @@ class ViewController: UIViewController {
     @objc func panGestureRecognizerChanged(recognizer: UIPanGestureRecognizer) {
         let movement = recognizer.translation(in: view)
         recognizer.setTranslation(.zero, in: view)
-        centerX -= Double(movement.x) / scaleFactor
-        centerY -= Double(movement.y) / scaleFactor
+        centerX -= movement.x / scaleFactor
+        centerY -= movement.y / scaleFactor
         fastMode = shouldRenderFast(recognizer: recognizer)
         render()
     }
 
     let backgrogroundThread = DispatchQueue(label: "Worker")
-    let calculationQueue = OperationQueue()
+    var currentRunIsFastMode = false
+    private var currentRenderProcess: RenderProcess?
 
     func render() {
-        guard !fastMode || calculationQueue.operationCount == 0 else {
+        guard !fastMode || (currentRenderProcess?.isStopped ?? true) || !currentRunIsFastMode else {
             return
         }
 
-        calculationQueue.cancelAllOperations()
+        self.currentRenderProcess?.stop()
+        self.currentRunIsFastMode = fastMode
+        let sizeFactor: CGFloat = fastMode ? 6 : 1
 
-        let sizeFactor: CGFloat = fastMode ? 10 : 1
-        let width = Int(view.bounds.width / sizeFactor)
-        let height = Int(view.bounds.height / sizeFactor)
-        let totalSize = height * width
-        var pixels = Array(repeating: PixelData.zero, count: totalSize)
+        let renderProcess = RenderProcess(
+            width: Int(view.bounds.width / sizeFactor),
+            height: Int(view.bounds.height / sizeFactor),
+            scaling: CGFloat(sizeFactor) / CGFloat(self.scaleFactor),
+            center: CGPoint(x: centerX, y: centerY),
+            function: function
+        )
+        self.currentRenderProcess = renderProcess
 
-        calculationQueue.addOperation { [self] in
-            for index in 0..<totalSize {
-                let x = index % width
-                let y = index / width
-
-                let number = ComplexNumber(
-                    real: CGFloat(x - width / 2) * CGFloat(sizeFactor) / CGFloat(self.scaleFactor) + CGFloat(self.centerX),
-                    imaginary: CGFloat(y - height / 2) * CGFloat(sizeFactor) / CGFloat(self.scaleFactor) + CGFloat(self.centerY))
-
-                pixels[index] = self.mapping.apply(to: number)
-            }
-
-            let providerRef = CGDataProvider(
-                data: NSData(bytes: &pixels, length: pixels.count * MemoryLayout<PixelData>.size)
-            )!
-
-            let image = CGImage(
-                width: width,
-                height: height,
-                bitsPerComponent: 8,
-                bitsPerPixel: 32,
-                bytesPerRow: width * MemoryLayout<PixelData>.size,
-                space: self.rgbColorSpace,
-                bitmapInfo: self.bitmapInfo,
-                provider: providerRef,
-                decode: nil,
-                shouldInterpolate: true,
-                intent: .defaultIntent)!
-
-            DispatchQueue.main.async {
-                self.imageView.image = UIImage(cgImage: image)
-            }
+        renderProcess.start { image in
+            self.imageView.image = image
         }
     }
 
-    let mapping = Mapper.id.map { (number: ComplexNumber) -> CGFloat in
+    let function = Function.id.map { (number: ComplexNumber) -> CGFloat in
         var current = number
         let maxIterations = 1000
         var iterations = 0
@@ -193,12 +164,93 @@ extension ViewController: UIGestureRecognizerDelegate {
     }
 }
 
-struct Mapper<Input, Output> {
-    typealias Function = (Input) -> Output
 
-    private let mapping: Function
+class RenderProcess {
+    private static let rgbColorSpace = CGColorSpaceCreateDeviceRGB()
+    private static let bitmapInfo: CGBitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedFirst.rawValue)
 
-    private init(mapping: @escaping Function) {
+    private let calculationQueue = OperationQueue()
+    private let width: Int
+    private let height: Int
+    private let scaling: CGFloat
+    private let center: CGPoint
+    private let function: Function<ComplexNumber, PixelData>
+    private(set) var isStopped = false
+
+    init(width: Int, height: Int, scaling: CGFloat, center: CGPoint, function: Function<ComplexNumber, PixelData>) {
+        self.width = width
+        self.height = height
+        self.scaling = scaling
+        self.center = center
+        self.function = function
+    }
+
+    func stop() {
+        guard !isStopped else { return }
+        isStopped = true
+        calculationQueue.cancelAllOperations()
+    }
+
+    func start(callback: @escaping (UIImage) -> Void) {
+        let totalSize = height * width
+        var pixels = Array(repeating: PixelData.zero, count: totalSize)
+
+        for y in 0..<self.height {
+            let startIndex = y * self.width
+
+            calculationQueue.addOperation {
+                for x in 0..<self.width {
+                    guard !self.isStopped else { return }
+
+                    let index = startIndex + x
+
+                    let number = ComplexNumber(
+                        real: CGFloat(x - self.width / 2) * self.scaling + self.center.x,
+                        imaginary: CGFloat(y - self.height / 2) * self.scaling + self.center.y)
+
+                    pixels[index] = self.function.apply(to: number)
+                }
+            }
+        }
+
+        DispatchQueue.global().async {
+            self.calculationQueue.waitUntilAllOperationsAreFinished()
+
+            guard !self.isStopped else { return }
+
+            let providerRef = CGDataProvider(
+                data: NSData(bytes: &pixels, length: pixels.count * MemoryLayout<PixelData>.size)
+            )!
+
+            let image = CGImage(
+                width: self.width,
+                height: self.height,
+                bitsPerComponent: 8,
+                bitsPerPixel: 32,
+                bytesPerRow: self.width * MemoryLayout<PixelData>.size,
+                space: RenderProcess.rgbColorSpace,
+                bitmapInfo: RenderProcess.bitmapInfo,
+                provider: providerRef,
+                decode: nil,
+                shouldInterpolate: true,
+                intent: .defaultIntent)!
+
+            DispatchQueue.main.async {
+                callback(UIImage(cgImage: image))
+                self.isStopped = true
+            }
+
+        }
+    }
+}
+
+
+struct Function<Input, Output> {
+    typealias MapFunction = (Input) -> Output
+
+    private let mapping: MapFunction
+
+    private init(mapping: @escaping MapFunction) {
         self.mapping = mapping
     }
 
@@ -206,29 +258,29 @@ struct Mapper<Input, Output> {
         return mapping(value)
     }
 
-    func map<MappedOutput>(mapping: @escaping (Output) -> MappedOutput) -> Mapper<Input, MappedOutput> {
-        return Mapper<Input, MappedOutput>() {
+    func map<MappedOutput>(mapping: @escaping (Output) -> MappedOutput) -> Function<Input, MappedOutput> {
+        return Function<Input, MappedOutput>() {
             return mapping(self.apply(to: $0))
         }
     }
 
-    static func map(mapping: @escaping Function) -> Mapper {
-        return Mapper(mapping: mapping)
+    static func map(mapping: @escaping MapFunction) -> Function {
+        return Function(mapping: mapping)
     }
 }
 
-extension Mapper where Input == Output {
-    static var id: Mapper<Input, Output> { return Mapper<Input, Output>() { $0 } }
+extension Function where Input == Output {
+    static var id: Function<Input, Output> { return Function<Input, Output>() { $0 } }
 }
 
-extension Mapper where Output == CGFloat {
-    func toHueColor() -> Mapper<Input, UIColor> {
+extension Function where Output == CGFloat {
+    func toHueColor() -> Function<Input, UIColor> {
         return map { UIColor(hue: $0, saturation: 1, brightness: $0 < 1 ? 1 : 0, alpha: 1) }
     }
 }
 
-extension Mapper where Output == UIColor {
-    func toPixelData() -> Mapper<Input, PixelData> {
+extension Function where Output == UIColor {
+    func toPixelData() -> Function<Input, PixelData> {
         return map { PixelData(color: $0) }
     }
 }
