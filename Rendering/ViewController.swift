@@ -35,8 +35,8 @@ public struct PixelData {
 }
 
 struct ComplexNumber {
-    let real: Double
-    let imaginary: Double
+    let real: CGFloat
+    let imaginary: CGFloat
 }
 
 func * (lhs: ComplexNumber, rhs: ComplexNumber) -> ComplexNumber {
@@ -143,11 +143,11 @@ class ViewController: UIViewController {
                 let x = index % width
                 let y = index / width
 
-                let value = self.valuesMapper(number: ComplexNumber(
-                    real: Double(x - width / 2) * Double(sizeFactor) / self.scaleFactor + self.centerX,
-                    imaginary: Double(y - height / 2) * Double(sizeFactor) / self.scaleFactor + self.centerY))
+                let number = ComplexNumber(
+                    real: CGFloat(x - width / 2) * CGFloat(sizeFactor) / CGFloat(self.scaleFactor) + CGFloat(self.centerX),
+                    imaginary: CGFloat(y - height / 2) * CGFloat(sizeFactor) / CGFloat(self.scaleFactor) + CGFloat(self.centerY))
 
-                pixels[index] = self.colorMapper(value: value)
+                pixels[index] = self.mapping.apply(to: number)
             }
 
             let providerRef = CGDataProvider(
@@ -173,17 +173,7 @@ class ViewController: UIViewController {
         }
     }
 
-    func colorMapper(value: Double) -> PixelData {
-        let color = UIColor(
-            hue: CGFloat(value),
-            saturation: 1,
-            brightness: value < 1 ? 1 : 0,
-            alpha: 1)
-
-        return PixelData(color: color)
-    }
-
-    func valuesMapper(number: ComplexNumber) -> Double {
+    let mapping = Mapper.id.map { (number: ComplexNumber) -> CGFloat in
         var current = number
         let maxIterations = 1000
         var iterations = 0
@@ -193,12 +183,52 @@ class ViewController: UIViewController {
             iterations += 1
         }
 
-        return pow(Double(iterations) / Double(maxIterations), 0.5)
-    }
+        return pow(CGFloat(iterations) / CGFloat(maxIterations), 0.5)
+    }.toHueColor().toPixelData()
 }
 
 extension ViewController: UIGestureRecognizerDelegate {
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         return true
+    }
+}
+
+struct Mapper<Input, Output> {
+    typealias Function = (Input) -> Output
+
+    private let mapping: Function
+
+    private init(mapping: @escaping Function) {
+        self.mapping = mapping
+    }
+
+    func apply(to value: Input) -> Output {
+        return mapping(value)
+    }
+
+    func map<MappedOutput>(mapping: @escaping (Output) -> MappedOutput) -> Mapper<Input, MappedOutput> {
+        return Mapper<Input, MappedOutput>() {
+            return mapping(self.apply(to: $0))
+        }
+    }
+
+    static func map(mapping: @escaping Function) -> Mapper {
+        return Mapper(mapping: mapping)
+    }
+}
+
+extension Mapper where Input == Output {
+    static var id: Mapper<Input, Output> { return Mapper<Input, Output>() { $0 } }
+}
+
+extension Mapper where Output == CGFloat {
+    func toHueColor() -> Mapper<Input, UIColor> {
+        return map { UIColor(hue: $0, saturation: 1, brightness: $0 < 1 ? 1 : 0, alpha: 1) }
+    }
+}
+
+extension Mapper where Output == UIColor {
+    func toPixelData() -> Mapper<Input, PixelData> {
+        return map { PixelData(color: $0) }
     }
 }
