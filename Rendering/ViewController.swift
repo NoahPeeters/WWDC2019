@@ -85,8 +85,7 @@ class ViewController: UIViewController {
 
     private var scaleFactor: CGFloat = 200
     private var fastMode = false
-    private var centerX: CGFloat = 0
-    private var centerY: CGFloat = 0
+    private var center = CGPoint.zero
 
     func shouldRenderFast(recognizer: UIGestureRecognizer) -> Bool {
         return [UISwipeGestureRecognizer.State.began, .changed, .possible].contains(recognizer.state)
@@ -95,14 +94,16 @@ class ViewController: UIViewController {
     @objc func pinchGestureRecognizerChanged(recognizer: UIPinchGestureRecognizer) {
         let oldScaleFactor = scaleFactor
         scaleFactor *= recognizer.scale
-
-        let center = recognizer.location(in: view)
-
-        let xDistance = center.x - view.bounds.midX
-        centerX -= xDistance / scaleFactor - xDistance / oldScaleFactor
-        let yDistance = center.y - view.bounds.midY
-        centerY -= yDistance / scaleFactor - yDistance / oldScaleFactor
         recognizer.scale = 1
+
+        let scaleCenter = recognizer.location(in: view)
+
+        let xDistance = scaleCenter.x - view.bounds.midX
+        let yDistance = scaleCenter.y - view.bounds.midY
+
+        center = CGPoint(
+            x: center.x - xDistance / scaleFactor + xDistance / oldScaleFactor,
+            y: center.y - yDistance / scaleFactor + yDistance / oldScaleFactor)
 
         fastMode = shouldRenderFast(recognizer: recognizer)
         render()
@@ -111,8 +112,10 @@ class ViewController: UIViewController {
     @objc func panGestureRecognizerChanged(recognizer: UIPanGestureRecognizer) {
         let movement = recognizer.translation(in: view)
         recognizer.setTranslation(.zero, in: view)
-        centerX -= movement.x / scaleFactor
-        centerY -= movement.y / scaleFactor
+
+        center = CGPoint(
+            x: center.x - movement.x / scaleFactor,
+            y: center.y - movement.y / scaleFactor)
         fastMode = shouldRenderFast(recognizer: recognizer)
         render()
     }
@@ -134,7 +137,7 @@ class ViewController: UIViewController {
             width: Int(view.bounds.width / sizeFactor),
             height: Int(view.bounds.height / sizeFactor),
             scaling: CGFloat(sizeFactor) / CGFloat(self.scaleFactor),
-            center: CGPoint(x: centerX, y: centerY),
+            center: center,
             function: function
         )
         self.currentRenderProcess = renderProcess
