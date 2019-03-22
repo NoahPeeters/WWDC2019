@@ -9,10 +9,29 @@
 import UIKit
 
 public struct PixelData {
-    var a: UInt8 = 255
-    var r: UInt8
-    var g: UInt8
-    var b: UInt8
+    let alpha: UInt8
+    let red: UInt8
+    let green: UInt8
+    let blue: UInt8
+
+    public static let zero = PixelData(alpha: 0, red: 0, green: 0, blue: 0)
+
+    init(alpha: UInt8, red: UInt8, green: UInt8, blue: UInt8) {
+        self.alpha = alpha
+        self.red = red
+        self.green = green
+        self.blue = blue
+    }
+
+    init(color: UIColor) {
+        var alpha: CGFloat = 0
+        var red: CGFloat = 0
+        var green: CGFloat = 0
+        var blue: CGFloat = 0
+        color.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+
+        self.init(alpha: UInt8(alpha * 255), red: UInt8(red * 255), green: UInt8(green * 255), blue: UInt8(blue * 255))
+    }
 }
 
 struct ComplexNumber {
@@ -62,12 +81,6 @@ class ViewController: UIViewController {
         panGestureRecognizer.delegate = self
         view.addGestureRecognizer(panGestureRecognizer)
     }
-
-//    override func viewDidLayoutSubviews() {
-//        for i in 0..<100 {
-//            render()
-//        }
-//    }
 
     override func viewLayoutMarginsDidChange() {
         render()
@@ -122,29 +135,20 @@ class ViewController: UIViewController {
         let sizeFactor: CGFloat = fastMode ? 10 : 1
         let width = Int(view.bounds.width / sizeFactor)
         let height = Int(view.bounds.height / sizeFactor)
-        var pixels = Array(repeating: PixelData(a: 0, r: 0, g: 0, b: 0), count: width * height)
-
-        let numberOfBlocks = 16
         let totalSize = height * width
-        let size = totalSize / numberOfBlocks
+        var pixels = Array(repeating: PixelData.zero, count: totalSize)
 
-        for i in 0..<numberOfBlocks {
-            calculationQueue.addOperation { [self] in
-                for index in i * size ..< (i + 1) * size {
-                    let x = index % width
-                    let y = index / width
+        calculationQueue.addOperation { [self] in
+            for index in 0..<totalSize {
+                let x = index % width
+                let y = index / width
 
-                    let value = self.valuesMapper(number: ComplexNumber(
-                        real: Double(x - width / 2) * Double(sizeFactor) / self.scaleFactor + self.centerX,
-                        imaginary: Double(y - height / 2) * Double(sizeFactor) / self.scaleFactor + self.centerY))
+                let value = self.valuesMapper(number: ComplexNumber(
+                    real: Double(x - width / 2) * Double(sizeFactor) / self.scaleFactor + self.centerX,
+                    imaginary: Double(y - height / 2) * Double(sizeFactor) / self.scaleFactor + self.centerY))
 
-                    pixels[index] = self.colorMapper(value: value)
-                }
+                pixels[index] = self.colorMapper(value: value)
             }
-        }
-
-        backgrogroundThread.async { [self] in
-            self.calculationQueue.waitUntilAllOperationsAreFinished()
 
             let providerRef = CGDataProvider(
                 data: NSData(bytes: &pixels, length: pixels.count * MemoryLayout<PixelData>.size)
@@ -170,11 +174,13 @@ class ViewController: UIViewController {
     }
 
     func colorMapper(value: Double) -> PixelData {
-        if value == -1 {
-            return PixelData(a: 255, r: 0, g: 0, b: 0)
-        } else {
-            return PixelData(a: 255, r: 127 + UInt8(value * 127), g: UInt8(value * 255), b: 0)
-        }
+        let color = UIColor(
+            hue: CGFloat(value),
+            saturation: 1,
+            brightness: value < 1 ? 1 : 0,
+            alpha: 1)
+
+        return PixelData(color: color)
     }
 
     func valuesMapper(number: ComplexNumber) -> Double {
@@ -183,15 +189,11 @@ class ViewController: UIViewController {
         var iterations = 0
 
         while (current.real * current.real + current.imaginary * current.imaginary <= 2 * 2 && iterations < maxIterations) {
-            current = current * current + number
+            current = current * current + ComplexNumber(real: -0.8, imaginary: 0.156)
             iterations += 1
         }
 
-        if iterations == maxIterations {
-            return -1
-        }
-
-        return pow(Double(iterations) / Double(maxIterations), 0.1)
+        return pow(Double(iterations) / Double(maxIterations), 0.5)
     }
 }
 
