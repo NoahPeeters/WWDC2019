@@ -32,6 +32,12 @@ func + (lhs: ComplexNumber, rhs: ComplexNumber) -> ComplexNumber {
         imaginary: lhs.imaginary + rhs.imaginary)
 }
 
+func - (lhs: ComplexNumber, rhs: ComplexNumber) -> ComplexNumber {
+    return ComplexNumber(
+        real: lhs.real - rhs.real,
+        imaginary: lhs.imaginary - rhs.imaginary)
+}
+
 class ViewController: UIViewController {
 
     let imageView = UIImageView()
