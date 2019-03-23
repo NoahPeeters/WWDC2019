@@ -21,20 +21,12 @@ public class LiveViewController: UIViewController, PlaygroundLiveViewMessageHand
 
     public func updateSettings(_ newSettings: Settings) {
         self.settings = newSettings
+        didReceiveSettings = true
         render()
     }
 
     private let imageView = UIImageView()
-    private var settings = Settings.mandelbrot(colorPaletteGenerator: HueColorPaletteGenerator())
-
-        Settings.mandelbrot(colorPaletteGenerator: LinearInterpolationColorPaletteGenerator(colorControlPoints: [
-        (0.0, UIColor(red: 0/255, green: 7/255, blue: 100/255, alpha: 1)),
-        (0.16, UIColor(red: 32/255, green: 107/255, blue: 203/255, alpha: 1)),
-        (0.42, UIColor(red: 237/255, green: 255/255, blue: 255/255, alpha: 1)),
-        (0.6425, UIColor(red: 255/255, green: 170/255, blue: 0/255, alpha: 1)),
-        (0.8575, UIColor(red: 0/255, green: 2/255, blue: 0/255, alpha: 1)),
-        (1.0, UIColor(red: 0/255, green: 0/255, blue: 70/255, alpha: 1))
-    ]))
+    private var settings = Settings.mandelbrot()
 
     override public func viewDidLoad() {
         super.viewDidLoad()
@@ -63,6 +55,7 @@ public class LiveViewController: UIViewController, PlaygroundLiveViewMessageHand
 
     private var scaleFactor: CGFloat = 200
     private var center = CGPoint.zero
+    private var didReceiveSettings = false
 
     func shouldRenderFast(recognizer: UIGestureRecognizer) -> Bool {
         return [UISwipeGestureRecognizer.State.began, .changed, .possible].contains(recognizer.state)
@@ -100,6 +93,10 @@ public class LiveViewController: UIViewController, PlaygroundLiveViewMessageHand
     private var currentRenderProcess: RenderProcess?
 
     func render(fastMode: Bool = false) {
+        guard didReceiveSettings else {
+            return
+        }
+
         guard !fastMode || (currentRenderProcess?.isStopped ?? true) || !currentRunIsFastMode else {
             return
         }

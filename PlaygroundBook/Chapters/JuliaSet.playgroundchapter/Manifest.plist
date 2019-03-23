@@ -6,7 +6,9 @@
 	<string>ChapterOneName</string>
 	<key>Pages</key>
 	<array>
-		<string>PlaygroundPage.playgroundpage</string>
+		<string>Basic.playgroundpage</string>
+		<string>Hue.playgroundpage</string>
+		<string>Interpolation.playgroundpage</string>
 	</array>
 </dict>
 </plist>

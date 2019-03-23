@@ -11,7 +11,6 @@ import PlaygroundSupport
 
 //#-end-hidden-code
 
-
-let settings = Settings.juliaSet(constant: ComplexNumber(real: -0.279, imaginary: 0))
+let settings = Settings.mandelbrot()
 
 settings.sendToLiveView()

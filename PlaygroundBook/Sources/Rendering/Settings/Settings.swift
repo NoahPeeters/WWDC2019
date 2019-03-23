@@ -20,11 +20,11 @@ public final class Settings: Codable {
         self.iterationPixelData = colorPaletteGenerator.generatePalette(forMaxIterations: maxIterations) + [PixelData.black]
     }
 
-    public static func mandelbrot(maxIterations: Int = 1000, colorPaletteGenerator: ColorPaletteGenerator) -> Settings {
+    public static func mandelbrot(maxIterations: Int = 1000, colorPaletteGenerator: ColorPaletteGenerator = HueColorPaletteGenerator()) -> Settings {
         return Settings(juliaSetConstant: nil, maxIterations: maxIterations, colorPaletteGenerator: colorPaletteGenerator)
     }
 
-    public static func juliaSet(constant: ComplexNumber, maxIterations: Int = 1000, colorPaletteGenerator: ColorPaletteGenerator) -> Settings {
+    public static func juliaSet(constant: ComplexNumber, maxIterations: Int = 1000, colorPaletteGenerator: ColorPaletteGenerator = HueColorPaletteGenerator()) -> Settings {
         return Settings(juliaSetConstant: constant, maxIterations: maxIterations, colorPaletteGenerator: colorPaletteGenerator)
     }
 

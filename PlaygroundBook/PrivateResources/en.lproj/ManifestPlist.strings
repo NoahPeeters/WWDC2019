@@ -9,7 +9,12 @@ Contains English localizations of values in Manifest.plist files in the playgrou
 "PlaygroundBookName" = "Playground Book";
 
 /* The localized name of the first chapter in the playground book. */
-"ChapterOneName" = "Chapter One";
+"ChapterOneName" = "Mandelbrot";
 
-/* The localized name of the first page in the first chapter in the playground book. */
-"ChapterOnePageOneName" = "Playground Page";
+"ChapterOnePageOneName" = "Basic";
+"ChapterOnePageTwoName" = "Hue";
+"ChapterOnePageThreeName" = "Interpolation";
+
+"ChapterTwoPageOneName" = "Basic";
+"ChapterTwoPageTwoName" = "Hue";
+"ChapterTwoPageThreeName" = "Interpolation";
