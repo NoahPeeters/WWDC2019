@@ -8,6 +8,8 @@
 import UIKit
 
 internal class RenderProcess {
+    internal typealias PixelRenderFunction = (ComplexNumber) -> PixelData
+
     private static let rgbColorSpace = CGColorSpaceCreateDeviceRGB()
     private static let bitmapInfo: CGBitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedFirst.rawValue)
 
@@ -17,15 +19,15 @@ internal class RenderProcess {
     private let height: Int
     private let scaling: CGFloat
     private let center: CGPoint
-    private let function: Function<ComplexNumber, PixelData>
+    private let pixelRenderFunction: PixelRenderFunction
     private(set) internal var isStopped = false
 
-    internal init(width: Int, height: Int, scaling: CGFloat, center: CGPoint, function: Function<ComplexNumber, PixelData>) {
+    internal init(width: Int, height: Int, scaling: CGFloat, center: CGPoint, pixelRenderFunction: @escaping PixelRenderFunction) {
         self.width = width
         self.height = height
         self.scaling = scaling
         self.center = center
-        self.function = function
+        self.pixelRenderFunction = pixelRenderFunction
 
         calculationQueue.maxConcurrentOperationCount = OperationQueue.defaultMaxConcurrentOperationCount
     }
@@ -54,7 +56,7 @@ internal class RenderProcess {
                         real: CGFloat(x - self.width / 2) * self.scaling + self.center.x,
                         imaginary: CGFloat(y - self.height / 2) * self.scaling + self.center.y)
 
-                    localPixels[x] = self.function.apply(to: number)
+                    localPixels[x] = self.pixelRenderFunction(number)
                 }
 
                 self.syncQueue.sync {

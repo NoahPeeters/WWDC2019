@@ -7,7 +7,7 @@
 
 import UIKit
 
-public struct ComplexNumber: Hashable {
+public struct ComplexNumber: Codable, Hashable {
     public let real: CGFloat
     public let imaginary: CGFloat
 

@@ -10,3 +10,8 @@ import UIKit
 import PlaygroundSupport
 
 //#-end-hidden-code
+
+
+let settings = Settings.juliaSet(constant: ComplexNumber(real: -0.279, imaginary: 0))
+
+settings.sendToLiveView()

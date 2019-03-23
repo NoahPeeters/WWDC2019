@@ -9,30 +9,60 @@
 import UIKit
 import PlaygroundSupport
 
+public struct Settings: Codable {
+    let juliaSetConstant: ComplexNumber?
+
+    private init(juliaSetConstant: ComplexNumber?) {
+        self.juliaSetConstant = juliaSetConstant
+    }
+
+    public static func mandelbrot() -> Settings {
+        return Settings(juliaSetConstant: nil)
+    }
+
+    public static func juliaSet(constant: ComplexNumber) -> Settings {
+        return Settings(juliaSetConstant: constant)
+    }
+
+    public func sendToLiveView() {
+        let page = PlaygroundPage.current
+        let proxy = page.liveView as! PlaygroundRemoteLiveViewProxy
+
+        guard let encoded = try? JSONEncoder().encode(self) else { return }
+
+        proxy.send(.data(encoded))
+    }
+
+    init(decode message: PlaygroundValue) throws {
+        guard case let .data(data) = message else {
+            throw DecodingError.invalidPlaygroundValueType
+        }
+
+        self = try JSONDecoder().decode(Settings.self, from: data)
+    }
+
+    enum DecodingError: Error {
+        case invalidPlaygroundValueType
+    }
+}
+
 @objc(Book_Sources_LiveViewController)
 public class LiveViewController: UIViewController, PlaygroundLiveViewMessageHandler, PlaygroundLiveViewSafeAreaContainer {
-    /*
-    public func liveViewMessageConnectionOpened() {
-        // Implement this method to be notified when the live view message connection is opened.
-        // The connection will be opened when the process running Contents.swift starts running and listening for messages.
-    }
-    */
-
-    /*
-    public func liveViewMessageConnectionClosed() {
-        // Implement this method to be notified when the live view message connection is closed.
-        // The connection will be closed when the process running Contents.swift exits and is no longer listening for messages.
-        // This happens when the user's code naturally finishes running, if the user presses Stop, or if there is a crash.
-    }
-    */
-
     public func receive(_ message: PlaygroundValue) {
-        // Implement this method to receive messages sent from the process running Contents.swift.
-        // This method is *required* by the PlaygroundLiveViewMessageHandler protocol.
-        // Use this method to decode any messages sent as PlaygroundValue values and respond accordingly.
+        guard let settings = try? Settings(decode: message) else {
+            return
+        }
+
+        updateSettings(settings)
     }
 
-    let imageView = UIImageView()
+    public func updateSettings(_ newSettings: Settings) {
+        self.settings = newSettings
+        render()
+    }
+
+    private let imageView = UIImageView()
+    private var settings = Settings.mandelbrot()
 
     override public func viewDidLoad() {
         super.viewDidLoad()
@@ -58,7 +88,6 @@ public class LiveViewController: UIViewController, PlaygroundLiveViewMessageHand
     }
 
     private var scaleFactor: CGFloat = 200
-    private var fastMode = false
     private var center = CGPoint.zero
 
     func shouldRenderFast(recognizer: UIGestureRecognizer) -> Bool {
@@ -79,8 +108,7 @@ public class LiveViewController: UIViewController, PlaygroundLiveViewMessageHand
             x: center.x - xDistance / scaleFactor + xDistance / oldScaleFactor,
             y: center.y - yDistance / scaleFactor + yDistance / oldScaleFactor)
 
-        fastMode = shouldRenderFast(recognizer: recognizer)
-        render()
+        render(fastMode: shouldRenderFast(recognizer: recognizer))
     }
 
     @objc func panGestureRecognizerChanged(recognizer: UIPanGestureRecognizer) {
@@ -90,15 +118,14 @@ public class LiveViewController: UIViewController, PlaygroundLiveViewMessageHand
         center = CGPoint(
             x: center.x - movement.x / scaleFactor,
             y: center.y - movement.y / scaleFactor)
-        fastMode = shouldRenderFast(recognizer: recognizer)
-        render()
+        render(fastMode: shouldRenderFast(recognizer: recognizer))
     }
 
     let backgrogroundThread = DispatchQueue(label: "Worker")
     var currentRunIsFastMode = false
     private var currentRenderProcess: RenderProcess?
 
-    func render() {
+    func render(fastMode: Bool = false) {
         guard !fastMode || (currentRenderProcess?.isStopped ?? true) || !currentRunIsFastMode else {
             return
         }
@@ -112,7 +139,7 @@ public class LiveViewController: UIViewController, PlaygroundLiveViewMessageHand
             height: Int(view.bounds.height / sizeFactor),
             scaling: CGFloat(sizeFactor) / CGFloat(self.scaleFactor),
             center: center,
-            function: function
+            pixelRenderFunction: calculateColor(forNumber:)
         )
         self.currentRenderProcess = renderProcess
 
@@ -121,18 +148,21 @@ public class LiveViewController: UIViewController, PlaygroundLiveViewMessageHand
         }
     }
 
-    var function = Function.id.map { (number: ComplexNumber) -> CGFloat in
+
+    func calculateColor(forNumber number: ComplexNumber) -> PixelData {
         var current = number
         let maxIterations = 1000
         var iterations = 0
 
         while (current.real * current.real + current.imaginary * current.imaginary <= 2 * 2 && iterations < maxIterations) {
-            current = current * current + ComplexNumber(real: -0.8, imaginary: 0.156)
+            current = current * current + (self.settings.juliaSetConstant ?? number)
             iterations += 1
         }
 
-        return pow(CGFloat(iterations) / CGFloat(maxIterations), 0.5)
-    }.toHueColor().toPixelData()
+        let value = pow(CGFloat(iterations) / CGFloat(maxIterations), 0.5)
+
+        return PixelData(color: UIColor(hue: value, saturation: 1, brightness: value < 1 ? 1 : 0, alpha: 1))
+    }
 }
 
 extension LiveViewController: UIGestureRecognizerDelegate {
