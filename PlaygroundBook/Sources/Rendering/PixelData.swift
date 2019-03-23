@@ -7,13 +7,14 @@
 
 import UIKit
 
-public struct PixelData {
+public struct PixelData: Codable {
     let alpha: UInt8
     let red: UInt8
     let green: UInt8
     let blue: UInt8
 
     public static let zero = PixelData(alpha: 0, red: 0, green: 0, blue: 0)
+    public static let black = PixelData(alpha: 255, red: 0, green: 0, blue: 0)
 
     init(alpha: UInt8, red: UInt8, green: UInt8, blue: UInt8) {
         self.alpha = alpha

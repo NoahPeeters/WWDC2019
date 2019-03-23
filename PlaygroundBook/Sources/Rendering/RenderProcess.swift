@@ -8,8 +8,6 @@
 import UIKit
 
 internal class RenderProcess {
-    internal typealias PixelRenderFunction = (ComplexNumber) -> PixelData
-
     private static let rgbColorSpace = CGColorSpaceCreateDeviceRGB()
     private static let bitmapInfo: CGBitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedFirst.rawValue)
 
@@ -19,15 +17,16 @@ internal class RenderProcess {
     private let height: Int
     private let scaling: CGFloat
     private let center: CGPoint
-    private let pixelRenderFunction: PixelRenderFunction
+    private let settings: Settings
+
     private(set) internal var isStopped = false
 
-    internal init(width: Int, height: Int, scaling: CGFloat, center: CGPoint, pixelRenderFunction: @escaping PixelRenderFunction) {
+    internal init(width: Int, height: Int, scaling: CGFloat, center: CGPoint, settings: Settings) {
         self.width = width
         self.height = height
         self.scaling = scaling
         self.center = center
-        self.pixelRenderFunction = pixelRenderFunction
+        self.settings = settings
 
         calculationQueue.maxConcurrentOperationCount = OperationQueue.defaultMaxConcurrentOperationCount
     }
@@ -56,7 +55,7 @@ internal class RenderProcess {
                         real: CGFloat(x - self.width / 2) * self.scaling + self.center.x,
                         imaginary: CGFloat(y - self.height / 2) * self.scaling + self.center.y)
 
-                    localPixels[x] = self.pixelRenderFunction(number)
+                    localPixels[x] = self.calculateColor(forNumber: number)
                 }
 
                 self.syncQueue.sync {
@@ -93,5 +92,17 @@ internal class RenderProcess {
             }
 
         }
+    }
+
+    func calculateColor(forNumber number: ComplexNumber) -> PixelData {
+        var current = number
+        var iterations = 0
+
+        while (iterations < settings.maxIterations && current.real * current.real + current.imaginary * current.imaginary <= 2 * 2) {
+            current = current * current + (settings.juliaSetConstant ?? number)
+            iterations += 1
+        }
+
+        return settings.iterationPixelData[iterations]
     }
 }

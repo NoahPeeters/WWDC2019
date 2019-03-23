@@ -9,47 +9,10 @@
 import UIKit
 import PlaygroundSupport
 
-public struct Settings: Codable {
-    let juliaSetConstant: ComplexNumber?
-
-    private init(juliaSetConstant: ComplexNumber?) {
-        self.juliaSetConstant = juliaSetConstant
-    }
-
-    public static func mandelbrot() -> Settings {
-        return Settings(juliaSetConstant: nil)
-    }
-
-    public static func juliaSet(constant: ComplexNumber) -> Settings {
-        return Settings(juliaSetConstant: constant)
-    }
-
-    public func sendToLiveView() {
-        let page = PlaygroundPage.current
-        let proxy = page.liveView as! PlaygroundRemoteLiveViewProxy
-
-        guard let encoded = try? JSONEncoder().encode(self) else { return }
-
-        proxy.send(.data(encoded))
-    }
-
-    init(decode message: PlaygroundValue) throws {
-        guard case let .data(data) = message else {
-            throw DecodingError.invalidPlaygroundValueType
-        }
-
-        self = try JSONDecoder().decode(Settings.self, from: data)
-    }
-
-    enum DecodingError: Error {
-        case invalidPlaygroundValueType
-    }
-}
-
 @objc(Book_Sources_LiveViewController)
 public class LiveViewController: UIViewController, PlaygroundLiveViewMessageHandler, PlaygroundLiveViewSafeAreaContainer {
     public func receive(_ message: PlaygroundValue) {
-        guard let settings = try? Settings(decode: message) else {
+        guard let settings = try? Settings.decode(message: message) else {
             return
         }
 
@@ -62,7 +25,16 @@ public class LiveViewController: UIViewController, PlaygroundLiveViewMessageHand
     }
 
     private let imageView = UIImageView()
-    private var settings = Settings.mandelbrot()
+    private var settings = Settings.mandelbrot(colorPaletteGenerator: HueColorPaletteGenerator())
+
+        Settings.mandelbrot(colorPaletteGenerator: LinearInterpolationColorPaletteGenerator(colorControlPoints: [
+        (0.0, UIColor(red: 0/255, green: 7/255, blue: 100/255, alpha: 1)),
+        (0.16, UIColor(red: 32/255, green: 107/255, blue: 203/255, alpha: 1)),
+        (0.42, UIColor(red: 237/255, green: 255/255, blue: 255/255, alpha: 1)),
+        (0.6425, UIColor(red: 255/255, green: 170/255, blue: 0/255, alpha: 1)),
+        (0.8575, UIColor(red: 0/255, green: 2/255, blue: 0/255, alpha: 1)),
+        (1.0, UIColor(red: 0/255, green: 0/255, blue: 70/255, alpha: 1))
+    ]))
 
     override public func viewDidLoad() {
         super.viewDidLoad()
@@ -81,9 +53,11 @@ public class LiveViewController: UIViewController, PlaygroundLiveViewMessageHand
         let panGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(panGestureRecognizerChanged))
         panGestureRecognizer.delegate = self
         view.addGestureRecognizer(panGestureRecognizer)
+
+        render()
     }
 
-    override public func viewLayoutMarginsDidChange() {
+    override public func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         render()
     }
 
@@ -139,29 +113,13 @@ public class LiveViewController: UIViewController, PlaygroundLiveViewMessageHand
             height: Int(view.bounds.height / sizeFactor),
             scaling: CGFloat(sizeFactor) / CGFloat(self.scaleFactor),
             center: center,
-            pixelRenderFunction: calculateColor(forNumber:)
+            settings: settings
         )
         self.currentRenderProcess = renderProcess
 
         renderProcess.start { image in
             self.imageView.image = image
         }
-    }
-
-
-    func calculateColor(forNumber number: ComplexNumber) -> PixelData {
-        var current = number
-        let maxIterations = 1000
-        var iterations = 0
-
-        while (current.real * current.real + current.imaginary * current.imaginary <= 2 * 2 && iterations < maxIterations) {
-            current = current * current + (self.settings.juliaSetConstant ?? number)
-            iterations += 1
-        }
-
-        let value = pow(CGFloat(iterations) / CGFloat(maxIterations), 0.5)
-
-        return PixelData(color: UIColor(hue: value, saturation: 1, brightness: value < 1 ? 1 : 0, alpha: 1))
     }
 }
 
