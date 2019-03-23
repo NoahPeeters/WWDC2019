@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4029BED32245B4D300707989 /* ComplexNumber.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4029BED22245B4D300707989 /* ComplexNumber.swift */; };
+		4029BED52245B4F600707989 /* Function.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4029BED42245B4F600707989 /* Function.swift */; };
+		4029BED82245B52400707989 /* RenderProcess.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4029BED72245B52400707989 /* RenderProcess.swift */; };
+		4029BEDA2245B53700707989 /* PixelData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4029BED92245B53700707989 /* PixelData.swift */; };
 		5E086DCA2051DDAE004D8D25 /* LiveView.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 5E086DCC2051DDAE004D8D25 /* LiveView.storyboard */; };
 		5E086DD32051E3A3004D8D25 /* Manifest.plist in Copy Book Contents */ = {isa = PBXBuildFile; fileRef = 5E086DCF2051DF0F004D8D25 /* Manifest.plist */; };
 		5E3196F32061DEA40077BBD7 /* LiveViewSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E3196F22061DEA40077BBD7 /* LiveViewSupport.swift */; };
@@ -90,6 +94,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		4029BED22245B4D300707989 /* ComplexNumber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComplexNumber.swift; sourceTree = "<group>"; };
+		4029BED42245B4F600707989 /* Function.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Function.swift; sourceTree = "<group>"; };
+		4029BED72245B52400707989 /* RenderProcess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RenderProcess.swift; sourceTree = "<group>"; };
+		4029BED92245B53700707989 /* PixelData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PixelData.swift; sourceTree = "<group>"; };
 		5E086DC02051C5A7004D8D25 /* Fractals.playgroundbook */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Fractals.playgroundbook; sourceTree = BUILT_PRODUCTS_DIR; };
 		5E086DC72051DD03004D8D25 /* BookOverridingBuildSettings.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = BookOverridingBuildSettings.xcconfig; sourceTree = "<group>"; };
 		5E086DCD2051DDB8004D8D25 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LiveView.storyboard; sourceTree = "<group>"; };
@@ -132,6 +140,33 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		4029BED12245B4C400707989 /* Math */ = {
+			isa = PBXGroup;
+			children = (
+				4029BED22245B4D300707989 /* ComplexNumber.swift */,
+				4029BED42245B4F600707989 /* Function.swift */,
+			);
+			path = Math;
+			sourceTree = "<group>";
+		};
+		4029BED62245B51C00707989 /* Rendering */ = {
+			isa = PBXGroup;
+			children = (
+				4029BED72245B52400707989 /* RenderProcess.swift */,
+				4029BED92245B53700707989 /* PixelData.swift */,
+			);
+			path = Rendering;
+			sourceTree = "<group>";
+		};
+		4029BEDB2245B54600707989 /* Controller */ = {
+			isa = PBXGroup;
+			children = (
+				5EF2F9AD2054BBF300191409 /* LiveViewController.swift */,
+				5E3196F22061DEA40077BBD7 /* LiveViewSupport.swift */,
+			);
+			path = Controller;
+			sourceTree = "<group>";
+		};
 		5E086DA4204F706E004D8D25 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -250,8 +285,9 @@
 		5EF2F9A22054BB3E00191409 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				5EF2F9AD2054BBF300191409 /* LiveViewController.swift */,
-				5E3196F22061DEA40077BBD7 /* LiveViewSupport.swift */,
+				4029BEDB2245B54600707989 /* Controller */,
+				4029BED12245B4C400707989 /* Math */,
+				4029BED62245B51C00707989 /* Rendering */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -416,8 +452,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4029BEDA2245B53700707989 /* PixelData.swift in Sources */,
 				5E3196F32061DEA40077BBD7 /* LiveViewSupport.swift in Sources */,
+				4029BED82245B52400707989 /* RenderProcess.swift in Sources */,
+				4029BED32245B4D300707989 /* ComplexNumber.swift in Sources */,
 				5EF2F9AE2054BBF300191409 /* LiveViewController.swift in Sources */,
+				4029BED52245B4F600707989 /* Function.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
