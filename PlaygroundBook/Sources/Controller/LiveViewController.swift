@@ -22,7 +22,7 @@ public class LiveViewController: UIViewController, PlaygroundLiveViewMessageHand
     public func updateSettings(_ newSettings: Settings) {
         self.settings = newSettings
         didReceiveSettings = true
-        render()
+        render(isFinal: true)
     }
 
     private let imageView = UIImageView()
@@ -45,19 +45,17 @@ public class LiveViewController: UIViewController, PlaygroundLiveViewMessageHand
         let panGestureRecognizer = UIPanGestureRecognizer(target: self, action: #selector(panGestureRecognizerChanged))
         panGestureRecognizer.delegate = self
         view.addGestureRecognizer(panGestureRecognizer)
-
-        render()
     }
 
     override public func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-        render()
+        render(isFinal: true)
     }
 
     private var scaleFactor: CGFloat = 200
     private var center = CGPoint.zero
     private var didReceiveSettings = false
 
-    func shouldRenderFast(recognizer: UIGestureRecognizer) -> Bool {
+    func isFinalEvent(recognizer: UIGestureRecognizer) -> Bool {
         return [UISwipeGestureRecognizer.State.began, .changed, .possible].contains(recognizer.state)
     }
 
@@ -68,14 +66,14 @@ public class LiveViewController: UIViewController, PlaygroundLiveViewMessageHand
 
         let scaleCenter = recognizer.location(in: view)
 
-        let xDistance = scaleCenter.x - view.bounds.midX
-        let yDistance = scaleCenter.y - view.bounds.midY
+        let xDistance = (scaleCenter.x - view.bounds.midX) * UIScreen.main.scale
+        let yDistance = (scaleCenter.y - view.bounds.midY) * UIScreen.main.scale
 
         center = CGPoint(
             x: center.x - xDistance / scaleFactor + xDistance / oldScaleFactor,
             y: center.y - yDistance / scaleFactor + yDistance / oldScaleFactor)
 
-        render(fastMode: shouldRenderFast(recognizer: recognizer))
+        render(isFinal: isFinalEvent(recognizer: recognizer))
     }
 
     @objc func panGestureRecognizerChanged(recognizer: UIPanGestureRecognizer) {
@@ -83,32 +81,26 @@ public class LiveViewController: UIViewController, PlaygroundLiveViewMessageHand
         recognizer.setTranslation(.zero, in: view)
 
         center = CGPoint(
-            x: center.x - movement.x / scaleFactor,
-            y: center.y - movement.y / scaleFactor)
-        render(fastMode: shouldRenderFast(recognizer: recognizer))
+            x: center.x - movement.x * UIScreen.main.scale / scaleFactor,
+            y: center.y - movement.y * UIScreen.main.scale / scaleFactor)
+        render(isFinal: isFinalEvent(recognizer: recognizer))
     }
 
-    let backgrogroundThread = DispatchQueue(label: "Worker")
-    var currentRunIsFastMode = false
     private var currentRenderProcess: RenderProcess?
+    private var currentRenderProcessCanBeStopped = true
 
-    func render(fastMode: Bool = false) {
-        guard didReceiveSettings else {
-            return
-        }
-
-        guard !fastMode || (currentRenderProcess?.isStopped ?? true) || !currentRunIsFastMode else {
+    func render(isFinal: Bool) {
+        guard didReceiveSettings, currentRenderProcessCanBeStopped else {
             return
         }
 
         self.currentRenderProcess?.stop()
-        self.currentRunIsFastMode = fastMode
-        let sizeFactor: CGFloat = fastMode ? 6 : 1
+        currentRenderProcessCanBeStopped = false
 
         let renderProcess = RenderProcess(
-            width: Int(view.bounds.width / sizeFactor),
-            height: Int(view.bounds.height / sizeFactor),
-            scaling: CGFloat(sizeFactor) / CGFloat(self.scaleFactor),
+            width: Int(view.bounds.width * UIScreen.main.scale),
+            height: Int(view.bounds.height * UIScreen.main.scale),
+            scaling: scaleFactor,
             center: center,
             settings: settings
         )
@@ -116,6 +108,7 @@ public class LiveViewController: UIViewController, PlaygroundLiveViewMessageHand
 
         renderProcess.start { image in
             self.imageView.image = image
+            self.currentRenderProcessCanBeStopped = true
         }
     }
 }
