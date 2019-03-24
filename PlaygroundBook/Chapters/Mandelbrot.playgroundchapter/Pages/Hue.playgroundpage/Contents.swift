@@ -21,7 +21,7 @@ import PlaygroundSupport
 
 let settings = Settings.mandelbrot(
     colorPaletteGenerator: PowerTransformationColorPaletteGenerator(
-        iterationExponent: /*#-editable-code*/0.2/*#-end-editable-code*/,
-        chained: HueColorPaletteGenerator(hueFactor: /*#-editable-code*/5/*#-end-editable-code*/)))
+        iterationExponent: 0.2,
+        chained: HueColorPaletteGenerator(hueFactor: 5)))
 
 settings.sendToLiveView()

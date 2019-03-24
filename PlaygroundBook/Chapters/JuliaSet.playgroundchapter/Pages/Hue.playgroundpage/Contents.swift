@@ -14,9 +14,9 @@ import PlaygroundSupport
 //: Here you can experiment with other color with the julia set.
 
 let settings = Settings.juliaSet(
-    constant: ComplexNumber(real: /*#-editable-code*/-0.8/*#-end-editable-code*/, imaginary: /*#-editable-code*/0.156/*#-end-editable-code*/),
+    constant: ComplexNumber(real: -0.8, imaginary: 0.156),
     colorPaletteGenerator: PowerTransformationColorPaletteGenerator(
-        iterationExponent: /*#-editable-code*/0.2/*#-end-editable-code*/,
-        chained: HueColorPaletteGenerator(hueFactor: /*#-editable-code*/5/*#-end-editable-code*/)))
+        iterationExponent: 0.2,
+        chained: HueColorPaletteGenerator(hueFactor: 5)))
 
 settings.sendToLiveView()
