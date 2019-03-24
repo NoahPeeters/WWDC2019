@@ -15,6 +15,8 @@
 		406FD09C2246ED6700E2D982 /* HueColorPaletteGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 406FD09B2246ED6700E2D982 /* HueColorPaletteGenerator.swift */; };
 		406FD09E2246ED7E00E2D982 /* LinearInterpolationColorPaletteGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 406FD09D2246ED7E00E2D982 /* LinearInterpolationColorPaletteGenerator.swift */; };
 		406FD0A02246EDAB00E2D982 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 406FD09F2246EDAB00E2D982 /* Settings.swift */; };
+		40C230BA22479B4B0053B39C /* Shader.metal in CopyFiles */ = {isa = PBXBuildFile; fileRef = 40C648FA22478FDF0076E9E6 /* Shader.metal */; };
+		40C648FD224796560076E9E6 /* Shader.metal in Sources */ = {isa = PBXBuildFile; fileRef = 40C648FA22478FDF0076E9E6 /* Shader.metal */; };
 		5E086DCA2051DDAE004D8D25 /* LiveView.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 5E086DCC2051DDAE004D8D25 /* LiveView.storyboard */; };
 		5E086DD32051E3A3004D8D25 /* Manifest.plist in Copy Book Contents */ = {isa = PBXBuildFile; fileRef = 5E086DCF2051DF0F004D8D25 /* Manifest.plist */; };
 		5E3196F32061DEA40077BBD7 /* LiveViewSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E3196F22061DEA40077BBD7 /* LiveViewSupport.swift */; };
@@ -69,6 +71,16 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		40C64906224798400076E9E6 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 7;
+			files = (
+				40C230BA22479B4B0053B39C /* Shader.metal in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		5E086DD22051E35D004D8D25 /* Copy Book Contents */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -106,6 +118,7 @@
 		406FD09B2246ED6700E2D982 /* HueColorPaletteGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HueColorPaletteGenerator.swift; sourceTree = "<group>"; };
 		406FD09D2246ED7E00E2D982 /* LinearInterpolationColorPaletteGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinearInterpolationColorPaletteGenerator.swift; sourceTree = "<group>"; };
 		406FD09F2246EDAB00E2D982 /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
+		40C648FA22478FDF0076E9E6 /* Shader.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Shader.metal; sourceTree = "<group>"; };
 		5E086DC02051C5A7004D8D25 /* Fractals.playgroundbook */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Fractals.playgroundbook; sourceTree = BUILT_PRODUCTS_DIR; };
 		5E086DC72051DD03004D8D25 /* BookOverridingBuildSettings.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = BookOverridingBuildSettings.xcconfig; sourceTree = "<group>"; };
 		5E086DCD2051DDB8004D8D25 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LiveView.storyboard; sourceTree = "<group>"; };
@@ -297,6 +310,7 @@
 			isa = PBXGroup;
 			children = (
 				5EF2F97E2054B6E400191409 /* ManifestPlist.strings */,
+				40C648FA22478FDF0076E9E6 /* Shader.metal */,
 				5E086DCC2051DDAE004D8D25 /* LiveView.storyboard */,
 			);
 			path = PrivateResources;
@@ -350,6 +364,7 @@
 				5EA2E3BB2056F35A00416A35 /* Resources */,
 				5EA2E3D92056F8BD00416A35 /* Embed Frameworks */,
 				5EA2E3DD2056FB2900416A35 /* Embed Playground Book PublicResources & PrivateResources */,
+				40C64906224798400076E9E6 /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -455,7 +470,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "PLAYGROUND_BOOK_PATH=\"${BUILT_PRODUCTS_DIR}/${PLAYGROUND_BOOK_FILE_NAME}.playgroundbook\"\nPRIVATERESOURCES_FOLDER_PATH=\"${PLAYGROUND_BOOK_PATH}/Contents/PrivateResources\"\nPUBLICRESOURCES_FOLDER_PATH=\"${PLAYGROUND_BOOK_PATH}/Contents/PublicResources\"\n\nDESTINATION_FOLDER_PATH=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"\n\nif [[ -d \"${PRIVATERESOURCES_FOLDER_PATH}\" ]]; then\n    ditto \"${PRIVATERESOURCES_FOLDER_PATH}\" \"${DESTINATION_FOLDER_PATH}\"\nfi\n\nif [[ -d \"${PUBLICRESOURCES_FOLDER_PATH}\" ]]; then\n    ditto \"${PUBLICRESOURCES_FOLDER_PATH}\" \"${DESTINATION_FOLDER_PATH}\"\nfi\n\nmkdir -p \"${DERIVED_FILE_DIR}\"\ntouch \"${DERIVED_FILE_DIR}/embed-resources-marker\"";
+			shellScript = "PLAYGROUND_BOOK_PATH=\"${BUILT_PRODUCTS_DIR}/${PLAYGROUND_BOOK_FILE_NAME}.playgroundbook\"\nPRIVATERESOURCES_FOLDER_PATH=\"${PLAYGROUND_BOOK_PATH}/Contents/PrivateResources\"\nPUBLICRESOURCES_FOLDER_PATH=\"${PLAYGROUND_BOOK_PATH}/Contents/PublicResources\"\n\nDESTINATION_FOLDER_PATH=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"\n\nif [[ -d \"${PRIVATERESOURCES_FOLDER_PATH}\" ]]; then\n    ditto \"${PRIVATERESOURCES_FOLDER_PATH}\" \"${DESTINATION_FOLDER_PATH}\"\nfi\n\nif [[ -d \"${PUBLICRESOURCES_FOLDER_PATH}\" ]]; then\n    ditto \"${PUBLICRESOURCES_FOLDER_PATH}\" \"${DESTINATION_FOLDER_PATH}\"\nfi\n\nmkdir -p \"${DERIVED_FILE_DIR}\"\ntouch \"${DERIVED_FILE_DIR}/embed-resources-marker\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -476,6 +491,7 @@
 				406FD09C2246ED6700E2D982 /* HueColorPaletteGenerator.swift in Sources */,
 				4029BEDA2245B53700707989 /* PixelData.swift in Sources */,
 				5E3196F32061DEA40077BBD7 /* LiveViewSupport.swift in Sources */,
+				40C648FD224796560076E9E6 /* Shader.metal in Sources */,
 				406FD0A02246EDAB00E2D982 /* Settings.swift in Sources */,
 				4029BED82245B52400707989 /* RenderProcess.swift in Sources */,
 				406FD0982246ED2D00E2D982 /* ColorPaletteGenerator.swift in Sources */,
@@ -683,6 +699,7 @@
 				DEVELOPMENT_TEAM = 52A793VRAY;
 				GCC_DYNAMIC_NO_PIC = NO;
 				INFOPLIST_FILE = LiveViewTestApp/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -706,6 +723,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 52A793VRAY;
 				INFOPLIST_FILE = LiveViewTestApp/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
