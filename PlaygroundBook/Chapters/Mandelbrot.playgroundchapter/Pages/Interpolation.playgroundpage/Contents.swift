@@ -11,6 +11,17 @@ import PlaygroundSupport
 
 //#-end-hidden-code
 
+/*:
+ - Experiment:
+    Try to change the control points. You can choose your own colors and change the number.
+    If you want to you can add additional control points.
+*/
+
+/*:
+ - Important:
+    Make sure that all numbers are in between 0.0 and 1.0 and that one control point has the value 0 and another one 1 to achieve good results.
+*/
+
 let settings = Settings.mandelbrot(
     colorPaletteGenerator: LinearInterpolationColorPaletteGenerator(
         colorControlPoints: [

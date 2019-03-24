@@ -11,8 +11,10 @@ import PlaygroundSupport
 
 //#-end-hidden-code
 
+//: Here you can experiment with other color with the julia set.
+
 let settings = Settings.juliaSet(
-    constant: ComplexNumber(real: -0.8, imaginary: 0.156),
+    constant: ComplexNumber(real: /*#-editable-code*/-0.8/*#-end-editable-code*/, imaginary: /*#-editable-code*/0.156/*#-end-editable-code*/),
     colorPaletteGenerator: LinearInterpolationColorPaletteGenerator(
         colorControlPoints: [
             (0.00, #colorLiteral(red: 0, green: 0.02745098039, blue: 0.3921568627, alpha: 1)),
