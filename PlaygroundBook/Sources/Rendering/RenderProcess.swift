@@ -15,13 +15,13 @@ internal class RenderProcess {
     private let syncQueue = DispatchQueue(label: "SyncQueue")
     private let width: Int
     private let height: Int
-    private let scaling: CGFloat
-    private let center: CGPoint
+    private let scaling: BDouble
+    private let center: ComplexNumber
     private let settings: Settings
 
     private(set) internal var isStopped = false
 
-    internal init(width: Int, height: Int, scaling: CGFloat, center: CGPoint, settings: Settings) {
+    internal init(width: Int, height: Int, scaling: BDouble, center: ComplexNumber, settings: Settings) {
         self.width = width
         self.height = height
         self.scaling = scaling
@@ -42,7 +42,8 @@ internal class RenderProcess {
     private var cachedPixelsHeight: Int = 0
 
     internal func start(samplingFactor: Int = 16, callback: @escaping (UIImage) -> Void) {
-        let cgSamplingFactor = CGFloat(samplingFactor)
+        print("Start \(samplingFactor)")
+        let cgSamplingFactor = BDouble(samplingFactor)
 
         let samplingHeight = height / samplingFactor
         let samplingWidth = width / samplingFactor
@@ -64,8 +65,8 @@ internal class RenderProcess {
                         localPixels[x] = cachedPixels[y/2*self.cachedPixelsWidth + x/2]
                     } else {
                         let number = ComplexNumber(
-                            real: CGFloat(x - samplingWidth / 2) * cgSamplingFactor / self.scaling + self.center.x,
-                            imaginary: CGFloat(y - samplingHeight / 2) * cgSamplingFactor / self.scaling + self.center.y)
+                            real: BDouble(x - samplingWidth / 2) * cgSamplingFactor / self.scaling + self.center.real,
+                            imaginary: BDouble(y - samplingHeight / 2) * cgSamplingFactor / self.scaling + self.center.imaginary)
 
                         localPixels[x] = self.calculateColor(forNumber: number)
                     }

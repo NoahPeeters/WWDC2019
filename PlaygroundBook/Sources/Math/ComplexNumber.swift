@@ -8,10 +8,10 @@
 import UIKit
 
 public struct ComplexNumber: Codable, Hashable {
-    public let real: CGFloat
-    public let imaginary: CGFloat
+    public let real: BDouble
+    public let imaginary: BDouble
 
-    public init(real: CGFloat, imaginary: CGFloat) {
+    public init(real: BDouble, imaginary: BDouble) {
         self.real = real
         self.imaginary = imaginary
     }
