@@ -9,18 +9,17 @@
 import UIKit
 import Metal
 import MetalKit
-import PlaygroundSupport
 
 @objc(Book_Sources_LiveViewController)
-public class LiveViewController: UIViewController, PlaygroundLiveViewMessageHandler, PlaygroundLiveViewSafeAreaContainer, MTKViewDelegate {
+public class LiveViewController: UIViewController, MTKViewDelegate {
 
-    public func receive(_ message: PlaygroundValue) {
-        guard let settings = try? Settings.decode(message: message) else {
-            return
-        }
-
-        updateSettings(settings)
-    }
+//    public func receive(_ message: PlaygroundValue) {
+//        guard let settings = try? Settings.decode(message: message) else {
+//            return
+//        }
+//
+//        updateSettings(settings)
+//    }
 
     public func updateSettings(_ newSettings: Settings) {
         self.settings = newSettings
@@ -37,7 +36,7 @@ public class LiveViewController: UIViewController, PlaygroundLiveViewMessageHand
     private var scaleFactor: CGFloat = 200
     private var center = CGPoint.zero
 
-    init() {
+    public init() {
         metalDevice = MTLCreateSystemDefaultDevice()!
         commandQueue = metalDevice.makeCommandQueue()!
 
@@ -106,6 +105,7 @@ public class LiveViewController: UIViewController, PlaygroundLiveViewMessageHand
         centerPos[0] = Float32(center.x)
         centerPos[1] = Float32(center.y)
         centerPos[2] = Float32(scaleFactor)
+        centerPos[3] = Float32(sin(Date().timeIntervalSince1970 / 10) * 2 * Double.pi)
 
         let w = pipelineState.threadExecutionWidth
         let h = pipelineState.maxTotalThreadsPerThreadgroup / w
@@ -152,36 +152,6 @@ public class LiveViewController: UIViewController, PlaygroundLiveViewMessageHand
 
     let backgrogroundThread = DispatchQueue(label: "Worker")
     var currentRunIsFastMode = false
-//    private var currentRenderProcess: RenderProcess?
-
-//    func render(fastMode: Bool = false) {
-
-
-//        guard didReceiveSettings else {
-//            return
-//        }
-//
-//        guard !fastMode || (currentRenderProcess?.isStopped ?? true) || !currentRunIsFastMode else {
-//            return
-//        }
-//
-//        self.currentRenderProcess?.stop()
-//        self.currentRunIsFastMode = fastMode
-//        let sizeFactor: CGFloat = fastMode ? 6 : 1
-//
-//        let renderProcess = RenderProcess(
-//            width: Int(view.bounds.width / sizeFactor),
-//            height: Int(view.bounds.height / sizeFactor),
-//            scaling: CGFloat(sizeFactor) / CGFloat(self.scaleFactor),
-//            center: center,
-//            settings: settings
-//        )
-//        self.currentRenderProcess = renderProcess
-//
-//        renderProcess.start { image in
-//            self.imageView.image = image
-//        }
-//    }
 }
 
 extension LiveViewController: UIGestureRecognizerDelegate {

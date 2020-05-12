@@ -43,16 +43,18 @@ kernel void mandelbrotShader(texture2d<float, access::write> output [[texture(0)
 
 //    output.write(float4(float(upos.x) / 1000.0, 0, 0, 1), upos);
 
+    ComplexNumber<float> c(cos(centerPoint.x) * 0.7885, sin(centerPoint.x) * 0.7885);
+
     ComplexNumber<float> start(float(int(upos.x) - int(width/2)) / centerPoint.z - centerPoint.x, float(int(upos.y) - int(height/2)) / centerPoint.z - centerPoint.y);
     ComplexNumber<float> z = start;
 
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 300; i++) {
         if (z.squaredMagnitute() > 4) {
-            output.write(float4(float(i)/100.0, 0, 0, 1), upos);
+            output.write(float4(float(i)/10.0, float(i)/100.0, float(i)/300.0, 1), upos);
             return;
         }
 
-        z = z * z + start;
+        z = z * z + c;
     }
 
     output.write(float4(0, 0, 0, 1), upos);

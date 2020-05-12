@@ -6,7 +6,6 @@
 //
 
 import UIKit
-import PlaygroundSupport
 
 /// Instantiates a new instance of a live view.
 ///

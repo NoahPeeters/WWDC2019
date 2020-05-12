@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import PlaygroundSupport
 
 public final class Settings: Codable {
     let juliaSetConstant: ComplexNumber?
@@ -29,21 +28,21 @@ public final class Settings: Codable {
     }
 
     public func sendToLiveView() {
-        let page = PlaygroundPage.current
-        let proxy = page.liveView as! PlaygroundRemoteLiveViewProxy
-
-        guard let encoded = try? JSONEncoder().encode(self) else { return }
-
-        proxy.send(.data(encoded))
+//        let page = PlaygroundPage.current
+//        let proxy = page.liveView as! PlaygroundRemoteLiveViewProxy
+//
+//        guard let encoded = try? JSONEncoder().encode(self) else { return }
+//
+//        proxy.send(.data(encoded))
     }
 
-    static func decode(message: PlaygroundValue) throws -> Settings {
-        guard case let .data(data) = message else {
-            throw DecodingError.invalidPlaygroundValueType
-        }
-
-        return try JSONDecoder().decode(Settings.self, from: data)
-    }
+//    static func decode(message: PlaygroundValue) throws -> Settings {
+//        guard case let .data(data) = message else {
+//            throw DecodingError.invalidPlaygroundValueType
+//        }
+//
+//        return try JSONDecoder().decode(Settings.self, from: data)
+//    }
 
     enum DecodingError: Error {
         case invalidPlaygroundValueType
